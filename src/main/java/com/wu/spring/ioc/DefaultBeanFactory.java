@@ -394,7 +394,7 @@ public class DefaultBeanFactory implements BeanFactory {
                     //根据beanName去找实例(这时是实现类的beanName)
                     beanField.setAccessible(true);
                     try {
-                        //反射注入属性实例。
+                        //反射注入属性实例。beanFieldClass是属性的所属类，从Bean容器中可以获得该类的bean对象
                         //第一遍缓存没有bean，再getBean。
                         beanField.set(bean,getBean(beanFieldClass.getName())
                         );

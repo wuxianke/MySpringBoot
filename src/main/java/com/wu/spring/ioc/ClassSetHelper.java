@@ -61,7 +61,7 @@ public class ClassSetHelper {
     /**
      * @return 获得被Controller注解的类对象集合
      */
-    private static Set<Class<?>> getControllerClassSet() {
+    public static Set<Class<?>> getControllerClassSet() {
         Set<Class<?>> classSet = new HashSet<Class<?>>();
         for (Class<?> cls : CLASS_SET) {
             if (cls.isAnnotationPresent(Controller.class)) {
