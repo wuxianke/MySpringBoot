@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 /**
  * 普通的数据源派生类，每次都会获取到一个新的连接
- * @author Administrator
+ * @author Cactus
  *
  */
 public class NormalDataSource implements DataSource{

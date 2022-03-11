@@ -10,7 +10,7 @@ import java.util.Stack;
 public class SimpleTransactionManager implements TransactionManager {
     //ThreadLocal对象保证每个线程对应唯一的数据库连接
     private ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<>();
-    //上级事务连接缓存，使用栈可以保证多级事务的缓存
+    //上级事务连接缓存，使用栈可以保证多级事务的缓存，可以用来延缓当前事务。
     private ThreadLocal<Stack<Connection>> delayThreadLocal = new ThreadLocal<>();
     //数据源
     private DataSource dataSource;
@@ -51,7 +51,7 @@ public class SimpleTransactionManager implements TransactionManager {
     }
 
     /**
-     * 当前事务是否存在，如果当前的Connection为非自动提交，说明存在事务
+     * 判断当前事务是否存在，如果当前的Connection为非自动提交，说明存在事务
      */
     @Override
     public boolean isTransactionPresent() {
@@ -84,6 +84,12 @@ public class SimpleTransactionManager implements TransactionManager {
                 //不需要创建事务，直接获取自动提交的连接，以非事务方式运行
             }
         }
+        //PROPAGATION_MANDATORY:如果当前存在事务，则加入该事务；如果不存在，则抛出异常
+        else if(status.propagationLevel == PropagationLevelConstant.PROPAGATION_MANDATORY){
+            if (!status.isTrans){
+                throw new RuntimeException("事务传播方式为PROPAGATION_MANDATORY，但当前不存在事务");
+            }
+        }
         //PROPAGATION_REQUIRES_NEW：重新创建一个新的事务，如果当前存在事务，延缓当前的事务。
         else if (status.propagationLevel == PropagationLevelConstant.PROPAGATION_REQUIRES_NEW) {
             if (status.isTrans) {
@@ -111,7 +117,7 @@ public class SimpleTransactionManager implements TransactionManager {
                 Stack<Connection> stack = delayThreadLocal.get();
                 stack.push(connectionThreadLocal.get());
                 delayThreadLocal.set(stack);
-                //移除后会获取自动提交的连接
+                //移除后会获取自动提交的连接，不需要额外进行操作。
                 connectionThreadLocal.remove();
             }
         }
@@ -122,6 +128,7 @@ public class SimpleTransactionManager implements TransactionManager {
             }
         }
         //PROPAGATION_NESTED：如果没有，就新建一个事务；如果有，就在当前事务中嵌套其他事务。
+        //具体该如何嵌套还没想好
         else if (status.propagationLevel == PropagationLevelConstant.PROPAGATION_NESTED) {
             if (!status.isTrans) {
                 doCreateTransaction(status.isolationLevel);
@@ -131,7 +138,7 @@ public class SimpleTransactionManager implements TransactionManager {
 
 
     /**
-     * 新建一个事务。获取一个新的连接，设置位非自动提交，并存放在connectionThreadLocal中
+     * 新建一个事务。获取一个新的连接，设置为非自动提交，并存放在connectionThreadLocal中
      *
      * @param isolationLevel 隔离等级
      * @throws SQLException
@@ -148,7 +155,7 @@ public class SimpleTransactionManager implements TransactionManager {
     }
 
     /**
-     * 提交事务
+     * 提交事务，这里需要根据不同的事务传播进行分类提交。
      */
     @Override
     public void commit(TransactionStatus status) throws SQLException {
@@ -160,6 +167,7 @@ public class SimpleTransactionManager implements TransactionManager {
             }
         }
         //如果当前存在上级事务，且传播行为为PROPAGATION_REQUIRES_NEW或PROPAGATION_NESTED，也进行自动提交
+        //因为无论是独立的事务还是子事务，都能独立提交
         else if (status.isTrans && status.propagationLevel == PropagationLevelConstant.PROPAGATION_REQUIRES_NEW) {
             Connection connection = connectionThreadLocal.get();
             if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
@@ -179,7 +187,7 @@ public class SimpleTransactionManager implements TransactionManager {
      */
     @Override
     public void rollback() throws SQLException {
-        //如果为非自动提交，则回滚事务
+        //如果为非自动提交，说明是事务，则回滚事务
         Connection connection = connectionThreadLocal.get();
         if (connection != null && !connection.isClosed() && !connection.getAutoCommit()) {
             connection.rollback();
@@ -187,7 +195,7 @@ public class SimpleTransactionManager implements TransactionManager {
     }
 
     /**
-     * 普通的关闭链接，如果是自动提交才自动关闭连接
+     * 普通的关闭连接，如果是自动提交才自动关闭连接
      */
     @Override
     public void close() throws SQLException {
@@ -202,7 +210,8 @@ public class SimpleTransactionManager implements TransactionManager {
 
 
     /**
-     * 关闭事务，恢复连接未自动提交和默认隔离级别，然后关闭连接，关闭链接前，若设置了自动提交为false，则必须进行回滚操作
+     * 关闭事务，恢复连接未自动提交和默认隔离级别，
+     * 然后关闭连接，关闭连接前，若设置了自动提交为false，则必须进行回滚操作
      */
     @Override
     public void closeTransaction(TransactionStatus status) throws SQLException {
@@ -217,7 +226,7 @@ public class SimpleTransactionManager implements TransactionManager {
             //清除线程本地变量
             connectionThreadLocal.remove();
         }
-        //如果当前存在上级事务，且传播行为为PROPAGATION_REQUIRES_NEW，则关闭事务，并且将上级事务连接恢复到connectionThreadLocal中
+        //如果当前存在上级事务，且传播行为PROPAGATION_REQUIRES_NEW，则关闭事务，并且将上级事务连接恢复到connectionThreadLocal中
         else if (status.isTrans && status.propagationLevel == PropagationLevelConstant.PROPAGATION_REQUIRES_NEW) {
             connection.rollback();
             connection.setAutoCommit(autoCommit);
@@ -230,6 +239,10 @@ public class SimpleTransactionManager implements TransactionManager {
         //如果当前存在上级事务，且传播行为为PROPAGATION_NOT_SUPPORTED，则直接将上级事务连接恢复到connectionThreadLocal中
         else if (status.isTrans && status.propagationLevel == PropagationLevelConstant.PROPAGATION_NOT_SUPPORTED) {
             connectionThreadLocal.set(delayThreadLocal.get().pop());
+        }
+        //
+        else if(status.isTrans && status.propagationLevel == PropagationLevelConstant.PROPAGATION_NESTED){
+
         }
 
     }

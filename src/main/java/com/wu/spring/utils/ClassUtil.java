@@ -21,6 +21,7 @@ public class ClassUtil {
     public static ClassLoader getClassLoader() {
         ClassLoader cl = null;
         try {
+            // 获取当前线程的类加载器
             cl = Thread.currentThread().getContextClassLoader();
         } catch (Throwable ex) {
             // Cannot access thread context ClassLoader - falling back to system class loader...
@@ -56,7 +57,7 @@ public class ClassUtil {
     }
 
     /**
-     * 获取指定包名下的所有类
+     * 获取指定包名下的所有类，在配置文件中会配置
      */
     public static Set<Class<?>> getClassSet(String packageName) {
         Set<Class<?>> classSet = new HashSet<Class<?>>();

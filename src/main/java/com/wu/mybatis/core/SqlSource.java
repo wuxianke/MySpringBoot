@@ -14,7 +14,7 @@ public class SqlSource {
     private String sql;
     //待输入字段
     private List<String> params = new ArrayList<>();
-    //注入的类型,0表示拼接，1表示动态注入
+    //注入的类型,0表示拼接，1表示动态注入, 一条语句可能存在多个类型
     private List<Integer> paramInjectTypes = new ArrayList<>();
     //Sql语句的类型，select update insert delete等
     private Integer executeType;

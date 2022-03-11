@@ -40,6 +40,8 @@ public class DefaultBeanFactory implements BeanFactory {
         Set<Class<?>> beanClassSet = ClassSetHelper.getBeanClassSet();
         if(beanClassSet!=null && !beanClassSet.isEmpty()) {
             try {
+                // 先将所有类进行BeanDefinition的注册。并未进行bean实例化。
+                // 即有service, controller, component 注解的类
                 for(Class<?> beanClass : beanClassSet) {
                     GenericBeanDefinition genericBeanDefinition = new GenericBeanDefinition();
                     genericBeanDefinition.setBeanClass(beanClass);
@@ -66,7 +68,7 @@ public class DefaultBeanFactory implements BeanFactory {
         if(null==instance) {
             synchronized (DefaultBeanFactory.class){
                 if(null==instance) {
-                    instance=new DefaultBeanFactory();
+                    instance = new DefaultBeanFactory();
                     return instance;
                 }
             }
@@ -187,7 +189,6 @@ public class DefaultBeanFactory implements BeanFactory {
                     singletonObjects.put(keyName, bean);
                     System.out.println("成功注入"+configClass.getName()+" 中的  "+returnClass.getName());
                 }
-
             }
             singletonObjects.remove(configClass.getName());
         }
@@ -213,16 +214,16 @@ public class DefaultBeanFactory implements BeanFactory {
             singletonsCurrennlyInCreation.add(beanName);
         }
         BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
-        if(beanDefinition==null) {
+        if(beanDefinition == null) {
             throw new Exception("不存在 "+beanName+" 的定义");
         }
         Class<?> beanClass = beanDefinition.getBeanClass();
-        //找到实现类
+        //找到实现类 是否有父类实现。
         beanClass = findImplementClass(beanClass,null);
         //判断是否需要代理，若需要则生成代理类
         if(beanDefinition.getIsProxy() && beanDefinition.getProxy()!=null) {
             MyProxy myProxy = beanDefinition.getProxy();
-            bean=myProxy.getProxy(beanClass);
+            bean = myProxy.getProxy(beanClass);
         }
         else {
             // 否则则通过反射创建bean对象实例。
@@ -272,7 +273,9 @@ public class DefaultBeanFactory implements BeanFactory {
         if(bean!=null) {
             return bean;
         }
-        //如果一级缓存不存在bean，且bean在创建中，则从二级缓存中拿出半成品bean返回，否则从三级缓存拿出放入二级缓存中
+        //如果一级缓存不存在bean，且bean在创建中，
+        //则从二级缓存中拿出半成品bean返回，
+        //如果二级缓存也没有，则从三级缓存拿出放入二级缓存中
         if(singletonsCurrennlyInCreation.contains(beanName)) {
             bean = earlySingletonObjects.get(beanName);
             if(bean == null) {

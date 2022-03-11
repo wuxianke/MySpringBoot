@@ -1,6 +1,8 @@
 package com.wu.spring.mvc;
 
+import com.alibaba.fastjson.JSON;
 import com.wu.spring.annotation.mvc.PathVariable;
+import com.wu.spring.annotation.mvc.RequestBody;
 import com.wu.spring.annotation.mvc.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,11 +37,11 @@ public class HandlerAdapter {
         if (handler.method.getParameterCount() == 0) {
             return handler.method.invoke(handler.controller);
         }
-        //先是获取参数的类型
+        //先是获取参数的类型，这个是用来将String类型转换成所需要。
         Class<?>[] parameterTypes = handler.method.getParameterTypes();
         // 获取参数
         Parameter[] parameters = handler.method.getParameters();
-        //
+        // 根据参数类型的大小创建参数值数组
         Object[] paramValues = new Object[parameterTypes.length];
         String requestName = HttpServletRequest.class.getName();
         if (this.paramMapping.containsKey(requestName)) {
@@ -52,7 +54,28 @@ public class HandlerAdapter {
             paramValues[responseIndex] = response;
         }
         //注入消息体的内容，这种情况一般是Post请求时。
+        String bodyContent=null;
+        try {
+            bodyContent = getBodyContent(request);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
+        if(request.getMethod().equals("POST") && bodyContent!=null) {
+            Integer index=-1;
+            for(Integer i=0;i<parameters.length;i++) {
+                if(parameters[i].isAnnotationPresent(RequestBody.class)) {
+                    index=i;
+                    break;
+                }
+            }
+            if(index>=0) {
+                // 通过解析body，将body中的参数放入对应位置。
+                Object body = JSON.parseObject(bodyContent, parameterTypes[index]);
+                paramValues[index]=body;
+            }
+        }
         //解析RequestParam和pathVariable中的参数
         // 首先获得请求中的key与value.
         Map<String, String[]> parameterMap = request.getParameterMap();

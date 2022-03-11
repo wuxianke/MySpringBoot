@@ -87,7 +87,7 @@ public class AOPHelper {
                 });
             }
         }
-        // 重新注册需要增强的类，注入代理类，由于这些类需要代理，因此需要重新注册。
+        // 重新注册需要被增强的类，注入代理类，由于这些类需要代理，因此需要重新注册。
         try {
             CGLibProxy cgLibProxy = new CGLibProxy(methodAdvicesMap);
             for(Class<?> cls:classMethodMap.keySet()) {
@@ -209,7 +209,7 @@ public class AOPHelper {
     }
 
     /**
-     * 解析切点全限量名，分解，获得代理的目标类和方法，比如com.wu.de.service.UserService为类
+     * 解析切点全限量名，分解，获得代理的目标类和方法，比如com.wu.de.service.UserService为类，后面的为方法
      * @param pointValue 切点方法全限量名
      * @return 分别将类名和方法保存在Map中
      */
@@ -220,6 +220,7 @@ public class AOPHelper {
             throw new RuntimeException("全限量名解析异常");
         }
         StringBuilder stringBuilder = new StringBuilder();
+        // 分别保存class和method.
         for (int i = 0; i < split.length - 1; i++) {
             if (i == split.length - 2) {
                 stringBuilder.append(split[i]);

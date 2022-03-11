@@ -36,7 +36,8 @@ public class JedisConfig {
 	    //逐出连接的最小空闲时间，默认是180000（30分钟）
 	    config.setMinEvictableIdleTimeMillis(60000);
 		//Jedis服务器地址
-	    String redisHost = "192.168.26.128" ;
+	    //String redisHost = "192.168.26.128" ;
+		String redisHost = "1.15.27.75" ;
 	    Integer port = 6379;
 	    String password = "123456";
 		return new JedisPool(config, redisHost, 6379, 30000, password, 0).getResource();

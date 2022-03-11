@@ -5,22 +5,27 @@ import com.wu.spring.aop.JoinPoint;
 
 @Aspect
 public class Interceptor {
-	@Pointcut("com.wang.demo.service.UserService.registerUser")
+	@Pointcut("com.wu.demo.service.UserService.registerUser")
 	public void point() {
 		
 	}
 	
 	@Before(value = "point()",order = 1)
 	public void beforeService() {
-		System.out.println("开始调用registerUser,当前时间为："+System.currentTimeMillis());
+		System.out.println("开始调用registerUser,该增强方法order为1,当前时间为："+System.currentTimeMillis());
+	}
+
+	@Before(value = "point()",order = 2)
+	public void beforeService4() {
+		System.out.println("开始调用registerUser,该增强方法order为2,当前时间为："+System.currentTimeMillis());
 	}
 	
-	@Before(value = "com.wang.demo.service.UserService.loginUser")
+	@Before(value = "com.wu.demo.service.UserService.loginUser")
 	public void beforeService2() {
 		System.out.println("开始调用loginUser,当前时间为："+System.currentTimeMillis());
 	}
 	
-	@Before(value = "com.wang.demo.service.UserService.isUserLogin")
+	@Before(value = "com.wu.demo.service.UserService.isUserLogin")
 	public void beforeService3() {
 		System.out.println("开始调用isUserLogin,当前时间为："+System.currentTimeMillis());
 	}
@@ -30,7 +35,7 @@ public class Interceptor {
 		Object result=null;
 		System.out.println("around调用之前............");
 		try {
-			result=joinPoint.proceed();
+			result= joinPoint.proceed();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

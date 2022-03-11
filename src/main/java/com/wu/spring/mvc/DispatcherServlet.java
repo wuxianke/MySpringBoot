@@ -1,9 +1,11 @@
 package com.wu.spring.mvc;
 
+import com.wu.mybatis.core.MapperHelper;
 import com.wu.spring.annotation.mvc.PathVariable;
 import com.wu.spring.annotation.mvc.RequestMapping;
 import com.wu.spring.annotation.mvc.RequestParam;
 import com.wu.spring.annotation.mvc.ResponseBody;
+import com.wu.spring.aop.AOPHelper;
 import com.wu.spring.constants.RequestMethod;
 import com.wu.spring.ioc.ClassSetHelper;
 import com.wu.spring.ioc.DefaultBeanFactory;
@@ -40,8 +42,8 @@ public class DispatcherServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         try {
             // 初始化 这两个类。
-            //Class.forName(AOPHelper.class.getName());
-            //Class.forName(MapperHelper.class.getName());
+            Class.forName(AOPHelper.class.getName());
+            Class.forName(MapperHelper.class.getName());
             beanFactory.refresh();
         } catch (ClassNotFoundException e1) {
             // 捕捉这两个类不存在的异常
@@ -92,20 +94,22 @@ public class DispatcherServlet extends HttpServlet {
                 RequestMapping requestMapping = clazz.getAnnotation(RequestMapping.class);
                 // 获得该注解规定url地址
                 url = requestMapping.value();
-                // 该注解规定的请求方法，默认为GET
+                // 该注解规定的请求方法，默认为GET, 如果具体方法是post，则需要更改。
                 requestMethod = requestMapping.method();
             }
             //当找到了Controller类后，接下来就要找每个url对应的handler,即方法。
             Method[] methods = clazz.getMethods();
             //找到有RequestMapping注解的方法，然后放进handler集合中。
             for (Method method : methods) {
-                // 不是则跳过
+                // 不是该注解说明不需要更改url和request方法，则跳过
                 if (!method.isAnnotationPresent(RequestMapping.class)) {
                     continue;
                 }
                 RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
                 // 完整的url地址为类的url与该方法的url拼接
                 String url2 = (url + requestMapping.value()).replaceAll("/+", "/");
+                // 修改为真实的方法。
+                requestMethod = requestMapping.method();
                 Request req = new Request(requestMethod, url2);
                 // handler实际上是个处理器，记录着对应的类对象以及处理方法
                 Handler handler = new Handler(beanFactory.getBean(clazz), method);
@@ -134,6 +138,7 @@ public class DispatcherServlet extends HttpServlet {
             Annotation[][] pa = handler.method.getParameterAnnotations();
             //匹配自定参数列表
             // 表示参数的位置，用索引i表示
+            // 如loginout(@RequestParam(value = "username") String username) 这里的位置为1，因为只有一个参数，注解也只有一个，为@RequestParam
             for (int i = 0; i < pa.length; i++) {
                 // 该参数位置的参数类型。
                 Class<?> type = parameterTypes[i];
@@ -149,14 +154,14 @@ public class DispatcherServlet extends HttpServlet {
                         // 判断参数是否为空。不为空则将参数与位置对应存储
                         if (!"".equals(paramName.trim())) {
                             paramMapping.put(paramName, i);
-                        } else if (annotation instanceof PathVariable) {
-                            paramName = ((PathVariable) annotation).value();
-                            if (!"".equals(paramName.trim())) {
-                                paramMapping.put(paramName, i);
-                            }
-                        } else if (annotation instanceof ResponseBody) {
-                            paramMapping.put("ResponseBody", i);
                         }
+                    } else if (annotation instanceof PathVariable) {
+                        paramName = ((PathVariable) annotation).value();
+                        if (!"".equals(paramName.trim())) {
+                            paramMapping.put(paramName, i);
+                        }
+                    } else if (annotation instanceof ResponseBody) {
+                        paramMapping.put("ResponseBody", i);
                     }
                 }
             }
@@ -264,7 +269,8 @@ public class DispatcherServlet extends HttpServlet {
 
     /**
      * 处理客户端传来的请求，根据请求以及handler的类型，做出响应。
-     * @param request 请求
+     *
+     * @param request  请求
      * @param response 响应
      * @throws Exception
      */
@@ -302,24 +308,18 @@ public class DispatcherServlet extends HttpServlet {
 
     /**
      * 请求解析
-     *
-     *
      */
     private void initMultipartResolver() {
     }
 
     /**
      * 多语言、国际化
-     *
-     *
      */
     private void initLocaleResolver() {
     }
 
     /**
      * 主题View层的
-     *
-     *
      */
     private void initThemeResolver() {
     }

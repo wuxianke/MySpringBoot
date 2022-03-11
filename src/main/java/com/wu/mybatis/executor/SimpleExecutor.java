@@ -39,7 +39,7 @@ public class SimpleExecutor implements Executor {
     }
 
     /**
-     * 执行selct语句
+     * 执行select语句
      *
      * @param method 方法
      * @param args   参数值

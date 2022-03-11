@@ -47,6 +47,7 @@ public class JoinPoint {
 		Object result;
 		if(methodProxy!=null) {
 			result=methodProxy.invokeSuper(target, this.args);
+			System.out.println("正在调用registerUser");
 		}
 		else {
 			if(this.args==null) {

@@ -16,8 +16,8 @@ public class TransactionFactory {
     /**
      * 生成一个TransactionManager实例，并且是单例的
      *
-     * @param level
-     * @param autoCommmit
+     * @param level  事务的隔离级别
+     * @param autoCommmit 是否自动提交事务
      * @return
      */
     public static TransactionManager newTransaction(Integer level, Boolean autoCommmit) {

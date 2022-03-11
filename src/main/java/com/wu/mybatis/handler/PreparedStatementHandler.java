@@ -11,6 +11,10 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
+
+/**
+ * 处理sql语句和传进来的参数，并对不同的${} #{}占位符进行不同的处理。
+ */
 public class PreparedStatementHandler {
 
     private Method method;
@@ -37,10 +41,10 @@ public class PreparedStatementHandler {
         List<String> params = sqlSource.getParam();
         List<Integer> paramInjectTypes = sqlSource.getParamInjectType();
         String sql = sqlSource.getSql();
-        //先对${}参数进行字符串替换
+        //先对${}参数进行字符串替换,也就是先生成String的sql语句。
         String parsedSql = parseSql(sql, parameterTypes, parameterNames, params, paramInjectTypes, args);
         PreparedStatement preparedStatement = connection.prepareStatement(parsedSql);
-        // 再对#{}动态注入参数
+        // 再对#{}动态注入参数，可以直接对语句进行注入，而不用先生成String语句。
         preparedStatement = typeInject(preparedStatement, parameterTypes, parameterNames, params, paramInjectTypes, args);
         return preparedStatement;
     }

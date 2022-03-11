@@ -11,15 +11,15 @@ import redis.clients.jedis.Jedis;
 
 @Service
 public class UserService implements IUserService{
-	
+
+	@Autowired
+	public com.wu.demo.service.UserService2 userservice2;
+
 	@Autowired
 	UserMapper userMapper;
 	
 	@Autowired
 	Jedis jedis;
-	
-	@Autowired
-	public com.wu.demo.service.UserService2 userservice2;
 	
 	@Override
 	public boolean registerUser(UserRequest request) {
@@ -47,6 +47,7 @@ public class UserService implements IUserService{
 	@Override
 	public boolean isUserLogin(String username) {
 		String key = "login:"+username;
+		System.out.println(username + "仍然在登录");
 		return jedis.exists(key);
 	}
 
@@ -58,6 +59,7 @@ public class UserService implements IUserService{
 			return false;
 		}
 		jedis.del(key);
+		System.out.println(username + "退出成功");
 		return true;
 	}
 

@@ -8,7 +8,7 @@ public class MethodDetails {
      */
     private Class<?> returnType;
     /**
-     *  是否返回集合： 当返回类型会可参数化类型时
+     * 是否返回集合： 当返回类型会可参数化类型时
      */
     private boolean hasSet;
 
@@ -17,12 +17,12 @@ public class MethodDetails {
      */
     private Class<?>[] parameterTypes;
     /**
-     *  参数名称，通过param中的value获得
+     * 参数名称，通过param中的value获得
      */
     private List<String> parameterNames;
 
     /**
-     *     // 解析得到Sql包装对象
+     * // 解析得到Sql包装对象
      */
     private SqlSource sqlSource;
 

@@ -9,6 +9,8 @@ import com.wu.spring.annotation.mvc.*;
 import com.wu.spring.constants.RequestMethod;
 import com.wu.spring.mvc.ModelAndView;
 
+@Controller
+@RequestMapping(value = "/user")
 public class TestController {
     @Autowired
     UserService userService;
@@ -18,6 +20,7 @@ public class TestController {
     public ResponseEntity registerUser(@RequestBody UserRequest userRequest) {
         try {
             boolean isRegister = userService.registerUser(userRequest);
+            System.out.println("测试循环依赖，如果相等则解决: "+userService+" "+userService.userservice2.userService);
             if(isRegister) {
                 return ResponseEntity.success(null, userRequest.getUserName()+"注册成功...");
             }
@@ -49,7 +52,7 @@ public class TestController {
         try {
             boolean isLogin = userService.isUserLogin(username);
             if(isLogin) {
-                return new ModelAndView("login_sucess.html").addModel("user", username);
+                return new ModelAndView("login_success.html").addModel("user", username);
             }
         } catch (Exception e) {
             // TODO: handle exception

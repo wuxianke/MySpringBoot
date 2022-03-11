@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SqlResultCache {
     /**
-     * //Sql语句的执行缓存
+     * Sql语句的执行缓存， 用ConcurrentHashMap做缓存，key为方法类加方法名，val为查询值(可能为列表形式)
      */
     private static Map<String,Object> map = new ConcurrentHashMap<>();
 

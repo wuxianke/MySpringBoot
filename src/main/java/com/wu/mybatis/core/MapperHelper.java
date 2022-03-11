@@ -60,7 +60,7 @@ public class MapperHelper {
     }
 
     /**
-     * 获得某个方法的详情类
+     * 获得某个方法的详情类，通过key从表中取出
      * @param method
      * @return
      */
@@ -75,6 +75,7 @@ public class MapperHelper {
 
     private static void init() {
         mapperClassSet = ClassSetHelper.getClassSetByAnnotation(Mapper.class);
+        // 如果没有mapper标注的类则返回。
         if(mapperClassSet == null || mapperClassSet.isEmpty()){
             System.out.println("Can not find Class with annotation of Mapper");
             return;
@@ -94,6 +95,7 @@ public class MapperHelper {
                 cacheMethodDetails.put(method, methodDetails);
             }
         }
+
         //将被@Mapper标注的类注册到BeanDefinition容器中，并设置代理类
         if(mapperClassSet!=null && !mapperClassSet.isEmpty()) {
             CGLibMapperProxy cgLibMapperProxy = new CGLibMapperProxy(ExecutorFactory.getExecutor());
@@ -120,7 +122,7 @@ public class MapperHelper {
         MethodDetails methodDetails = new MethodDetails();
         // 获得参数数量
         int parameterCount = method.getParameterCount();
-        // 获得返回类型类，以数组形式返回
+        // 获得参数类型类，以数组形式返回
         Class<?>[] parameterTypes = method.getParameterTypes();
         List<String> parameterNames = new ArrayList<>();
         // 获得参数的数组，数组的索引为该参数的位置
@@ -129,7 +131,7 @@ public class MapperHelper {
         for (Parameter parameter : parameters) {
             parameterNames.add(parameter.getName());
         }
-        //设置注解中的参数名称，即Param中的value
+        //设置注解中的参数名称，即Param注解中的value
         for(int i = 0; i < parameterCount; i++){
             parameterNames.set(i,getParamNameFromAnnotation(method,i,parameterNames.get(i)));
         }
@@ -154,7 +156,8 @@ public class MapperHelper {
     }
 
     /**
-     * 获取指定method的第i个参数的Param参数命名。
+     * 获取指定method的第i个参数的Param参数命名。比如 @Param("username") String username,@Param("password") String password
+     * username，password即为真正的value,而username是第0个参数，password为第1个。
      * @param method
      * @param i 位置
      * @param paramName 某个位置的占位名arg0。

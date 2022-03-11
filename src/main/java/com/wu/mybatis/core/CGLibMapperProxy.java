@@ -28,11 +28,12 @@ public class CGLibMapperProxy implements MethodInterceptor, MyProxy {
     @Override
     public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
         Object result = null;
+        // 如果是由增删改查类标注的方法
         if(isIntercept(method)){
-            // getMethodType
+            // getMethodType  判断是增删改查哪一个
             Integer methodType = MapperHelper.getMethodDetails(method).getSqlSource().getExecuteType();
             if(methodType == null){
-                throw new RuntimeException("method is normal sql method");
+                throw new RuntimeException("method is abnormal sql method");
             }
             //如果是被@Select注解
             if(methodType == SqlTypeConstant.SELECT_TYPE){
