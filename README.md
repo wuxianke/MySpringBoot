@@ -37,7 +37,7 @@ com.wu.demo包下是一个通过mysql和redis实现的注册登录demo。
 
 ## 相关功能实现示例：
 
-### 循环依赖问题
+#### 循环依赖问题
 
 在Service层分别定义了两个类，它们内部会相互依赖，如图：
 
@@ -47,13 +47,13 @@ com.wu.demo包下是一个通过mysql和redis实现的注册登录demo。
 
 ![image-20220310195410635](https://picture-1252827130.cos.ap-shanghai.myqcloud.com/picture/image-20220310195410635.png)
 
-### 实现多种通知方式：
+#### 实现多种通知方式：
 
 定义pointCut切点，在同一个切点实现了多个通知方法，并对同一类型按照order进行排序
 
 ![image-20220310200114374](https://picture-1252827130.cos.ap-shanghai.myqcloud.com/picture/image-20220310200114374.png)
 
-### 可根据不同请求，返回字符串或一个简单的页面：
+#### 可根据不同请求，返回字符串或一个简单的页面：
 
 字符串：
 
